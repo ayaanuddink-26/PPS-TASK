@@ -1,0 +1,63 @@
+def login_activity_analyzer(log_data):
+    """
+    Analyzes login records to identify suspicious users.
+    
+    Logic:
+    - Failed attempts >= 3 -> Suspicious
+    - Otherwise -> Normal
+    """
+    # Main dictionary to store user records
+    # Structure: { "UserID": {"total": int, "failed": int, "last_time": str} }
+    user_db = {}
+
+    # Batch Processing: Traversing the list of login records
+    for record in log_data:
+        user_id = record["user_id"]
+        status = record["status"]
+        timestamp = record["timestamp"]
+
+        # If user isn't in our dictionary, initialize their record
+        if user_id not in user_db:
+            user_db[user_id] = {
+                "total": 0,
+                "failed": 0,
+                "last_time": ""
+            }
+
+        # Update aggregation logic
+        user_db[user_id]["total"] += 1
+        user_db[user_id]["last_time"] = timestamp
+        
+        if status == "fail":
+            user_db[user_id]["failed"] += 1
+
+    # Output generation
+    print("=== LOGIN ACTIVITY REPORT ===")
+    for user_id, stats in user_db.items():
+        # Determine suspicion status
+        is_suspicious = stats["failed"] >= 3
+        status_label = "Suspicious" if is_suspicious else "Normal"
+        
+        print(f"User: {user_id}")
+        print(f"Total Attempts: {stats['total']}")
+        print(f"Failed Attempts: {stats['failed']}")
+        print(f"Last Login Time: {stats['last_time']}")
+        print(f"Status: {status_label}")
+        print("-" * 25)
+
+# --- EXAMPLE DATASET ---
+# Simulating a batch of login logs
+logs = [
+    {"user_id": "U101", "status": "success", "timestamp": "09:00 AM"},
+    {"user_id": "U203", "status": "fail", "timestamp": "09:05 AM"},
+    {"user_id": "U203", "status": "fail", "timestamp": "09:10 AM"},
+    {"user_id": "U105", "status": "success", "timestamp": "09:15 AM"},
+    {"user_id": "U203", "status": "fail", "timestamp": "09:20 AM"},
+    {"user_id": "U203", "status": "fail", "timestamp": "09:25 AM"},
+    {"user_id": "U203", "status": "success", "timestamp": "09:30 AM"},
+    {"user_id": "U101", "status": "fail", "timestamp": "09:35 AM"},
+]
+
+# Run the analyzer
+if __name__ == "__main__":
+    login_activity_analyzer(logs) 
